@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { validate } from '../middleware/validate.js';
+import { protect } from '../middleware/auth.js';
+import { idempotentWrites } from '../middleware/idempotency.js';
+import * as c from '../controllers/ai.controller.js';
+
+const aiLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+const r = Router();
+r.use(protect, idempotentWrites);
+r.get('/status', asyncHandler(c.status));
+r.get('/recommendations', asyncHandler(c.allRecommendations));
+r.get('/recommendations/:scope', aiLimiter, asyncHandler(c.recommendations));
+r.get('/recent', asyncHandler(c.recent));
+r.get('/chat/conversations', asyncHandler(c.conversations));
+r.get('/chat', asyncHandler(c.chatHistory));
+r.post('/chat', aiLimiter, validate(c.chatSchema), asyncHandler(c.sendChat));
+r.delete('/chat', asyncHandler(c.clearChat));
+r.get('/today-plan', asyncHandler(c.todayPlan));
+r.get('/meal-suggestions', aiLimiter, asyncHandler(c.mealSuggestions));
+r.get('/weekly-plan', asyncHandler(c.weeklyPlan));
+r.post('/weekly-plan', aiLimiter, asyncHandler(c.weeklyPlan));
+r.post('/weekly-plan/apply', asyncHandler(c.applyWeek));
+export default r;

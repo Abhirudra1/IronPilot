@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#13161c"/>
+  <!-- volt chevron (the "pilot" wing) -->
+  <path d="M256 92 L408 288 H330 L256 192 L182 288 H104 Z" fill="#9ad82f"/>
+  <!-- barbell -->
+  <rect x="104" y="330" width="304" height="40" rx="20" fill="#f4f4f5"/>
+  <rect x="76" y="306" width="48" height="88" rx="18" fill="#9ad82f"/>
+  <rect x="388" y="306" width="48" height="88" rx="18" fill="#9ad82f"/>
+  <rect x="140" y="318" width="34" height="64" rx="14" fill="#5a9e0c"/>
+  <rect x="338" y="318" width="34" height="64" rx="14" fill="#5a9e0c"/>
+</svg>

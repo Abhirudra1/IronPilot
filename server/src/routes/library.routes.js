@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { validate } from '../middleware/validate.js';
+import { protect, adminOnly } from '../middleware/auth.js';
+import * as c from '../controllers/library.controller.js';
+
+const r = Router();
+r.use(protect);
+r.get('/meta', c.meta);
+r.get('/equipment', asyncHandler(c.listEquipment));
+r.get('/equipment/:idOrSlug', asyncHandler(c.getEquipment));
+r.post('/equipment', adminOnly, validate(c.equipmentSchema), asyncHandler(c.createEquipment));
+r.patch('/equipment/:id', adminOnly, validate(c.equipmentSchema.partial()), asyncHandler(c.updateEquipment));
+r.delete('/equipment/:id', adminOnly, asyncHandler(c.deleteEquipment));
+r.get('/exercises', asyncHandler(c.listExercises));
+r.get('/exercises/:idOrSlug', asyncHandler(c.getExercise));
+r.post('/exercises', adminOnly, validate(c.exerciseSchema), asyncHandler(c.createExercise));
+r.patch('/exercises/:id', adminOnly, validate(c.exerciseSchema.partial()), asyncHandler(c.updateExercise));
+r.delete('/exercises/:id', adminOnly, asyncHandler(c.deleteExercise));
+r.get('/foods', asyncHandler(c.listFoods));
+r.get('/foods/:id', asyncHandler(c.getFood));
+r.post('/foods', adminOnly, validate(c.foodSchema), asyncHandler(c.createFood));
+r.patch('/foods/:id', adminOnly, validate(c.foodSchema.partial()), asyncHandler(c.updateFood));
+r.delete('/foods/:id', adminOnly, asyncHandler(c.deleteFood));
+export default r;

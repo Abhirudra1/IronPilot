@@ -1,0 +1,21 @@
+{
+  "name": "ironpilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IronPilot - AI gym co-pilot, AI coaching, workout planning and diet guidance",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "seed": "npm run seed --prefix server",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "npm run build --prefix client",
+    "dev:memory": "concurrently -n server,client -c cyan,magenta \"npm run dev:memory --prefix server\" \"npm:dev:client\"",
+    "smoke": "npm run smoke --prefix server",
+    "lint": "npm run lint --prefix server && npm run lint --prefix client",
+    "typecheck": "npm run typecheck --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

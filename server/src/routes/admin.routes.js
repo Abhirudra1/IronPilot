@@ -1,0 +1,20 @@
+import { Router } from 'express';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { validate } from '../middleware/validate.js';
+import { protect, adminOnly } from '../middleware/auth.js';
+import * as c from '../controllers/admin.controller.js';
+
+const r = Router();
+r.use(protect, adminOnly);
+r.get('/stats', asyncHandler(c.stats));
+r.get('/users', asyncHandler(c.listUsers));
+r.patch('/users/:id', validate(c.userUpdateSchema), asyncHandler(c.updateUser));
+r.delete('/users/:id', asyncHandler(c.deleteUser));
+r.get('/diet-templates', asyncHandler(c.listDietTemplates));
+r.post('/diet-templates', validate(c.dietTemplateSchema), asyncHandler(c.createDietTemplate));
+r.patch('/diet-templates/:id', validate(c.dietTemplateSchema.partial()), asyncHandler(c.updateDietTemplate));
+r.delete('/diet-templates/:id', asyncHandler(c.deleteDietTemplate));
+r.get('/notifications', asyncHandler(c.listNotifications));
+r.post('/notifications', validate(c.notifySchema), asyncHandler(c.sendNotification));
+r.delete('/notifications/:id', asyncHandler(c.deleteNotification));
+export default r;

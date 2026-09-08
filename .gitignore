@@ -1,0 +1,23 @@
+# dependencies & builds
+node_modules/
+dist/
+build/
+client/dev-dist/
+coverage/
+*.tsbuildinfo
+
+# secrets (keep the *.example files)
+.env
+.env.*
+!.env.example
+
+# local databases, logs, OS files
+.data/
+*.log
+.DS_Store
+Thumbs.db
+
+# editor / tool state (Claude Code session config, IDE settings)
+.claude/
+.vscode/
+.idea/

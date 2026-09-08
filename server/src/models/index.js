@@ -1,0 +1,16 @@
+export { User } from './User.js';
+export { Equipment } from './Equipment.js';
+export { Exercise } from './Exercise.js';
+export { WorkoutPlan } from './WorkoutPlan.js';
+export { WorkoutSession } from './WorkoutSession.js';
+export { WorkoutLog } from './WorkoutLog.js';
+export { Meal } from './Meal.js';
+export { DietPlan } from './DietPlan.js';
+export { WeightHistory } from './WeightHistory.js';
+export { WaterLog } from './WaterLog.js';
+export { Achievement } from './Achievement.js';
+export { Notification } from './Notification.js';
+export { Report } from './Report.js';
+export { AIRecommendation } from './AIRecommendation.js';
+export { ChatMessage } from './ChatMessage.js';
+export { Food } from './Food.js';
