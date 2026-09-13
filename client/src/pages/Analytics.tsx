@@ -4,7 +4,8 @@ import { BarChart, Bar as RBar, XAxis, YAxis, Tooltip, ResponsiveContainer, Line
 import { BarChart3, Download, Flame, Timer, Droplets, Footprints, Trophy, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
-import { PageHeader, PageLoader, Stat, Tabs, FadeIn, Bar, Empty } from '@/components/ui';
+import { PageHeader, Stat, Tabs, FadeIn, Bar, Empty } from '@/components/ui';
+import { AnalyticsPageSkeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { label, fmtDate, MUSCLE_COLORS } from '@/lib/utils';
 
@@ -43,7 +44,7 @@ export default function Analytics() {
     toast.success('PDF exported');
   };
 
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <AnalyticsPageSkeleton />;
   const { daily: d, weekly: w, monthly: m, equipment: e } = data;
 
   return (

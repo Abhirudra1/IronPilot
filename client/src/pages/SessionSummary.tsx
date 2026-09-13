@@ -5,7 +5,8 @@ import { Share2, Sparkles, Flame, Timer, Dumbbell, Trophy, Home, Copy } from 'lu
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import type { WorkoutSession } from '@/types';
-import { PageLoader, Badge, FadeIn } from '@/components/ui';
+import { Badge, FadeIn } from '@/components/ui';
+import { DetailPageSkeleton } from '@/components/ui/Skeleton';
 import { fmtDuration, label } from '@/lib/utils';
 
 export default function SessionSummary() {
@@ -14,7 +15,7 @@ export default function SessionSummary() {
   const loc = useLocation();
   const newAchievements = (loc.state as { newAchievements?: { title: string; icon: string; points: number }[] } | null)?.newAchievements || [];
   const { data, isLoading } = useQuery({ queryKey: ['session', id], queryFn: async () => (await api.get(`/sessions/${id}`)).data.item as WorkoutSession });
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <DetailPageSkeleton />;
 
   const shareUrl = `${location.origin}/shared/${data.shareCode}`;
   const share = async () => {

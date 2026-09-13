@@ -5,7 +5,8 @@ import { TrendingUp, Plus, Trash2, Scale, Ruler } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { WeightEntry } from '@/types';
-import { PageHeader, PageLoader, Tabs, Modal, Input, Stat, Empty, FadeIn } from '@/components/ui';
+import { PageHeader, Tabs, Modal, Input, Stat, Empty, FadeIn } from '@/components/ui';
+import { ProgressPageSkeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { fmtDate, bmiCategory, todayISO } from '@/lib/utils';
 
@@ -34,7 +35,7 @@ export default function Progress() {
   });
   const del = useMutation({ mutationFn: (id: string) => api.delete(`/tracking/weight/${id}`), onSuccess: () => { toast.success('Entry removed'); inv(); }, onError: (e) => toast.error(errMsg(e)) });
 
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <ProgressPageSkeleton />;
   const change = data.items.length > 1 ? Math.round((data.items[data.items.length - 1].weight - data.items[0].weight) * 10) / 10 : 0;
   const bmi = data.height ? Math.round((data.currentWeight / ((data.height / 100) ** 2)) * 10) / 10 : null;
   const latestMeasure = [...data.items].reverse().find((w) => w.measurements && Object.keys(w.measurements).length);

@@ -1,9 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { BrowserRouter } from 'react-router-dom';
 import toast, { Toaster, ToastBar } from 'react-hot-toast';
 import { registerSW } from 'virtual:pwa-register';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
@@ -16,9 +20,13 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
 });
 
+// Cache query results across reloads so returning users see library/equipment/dashboard
+// data instantly while it revalidates in the background, instead of a blank loader every visit.
+const persister = createSyncStoragePersister({ key: 'ip_query_cache', storage: window.localStorage });
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000, buster: 'v1' }}>
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
@@ -30,6 +38,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+      <Analytics />
+      <SpeedInsights />
+    </PersistQueryClientProvider>
   </React.StrictMode>,
 );

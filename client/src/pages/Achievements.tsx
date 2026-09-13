@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Trophy, Lock } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Achievement } from '@/types';
-import { PageHeader, PageLoader, Bar, FadeIn } from '@/components/ui';
+import { PageHeader, Bar, FadeIn } from '@/components/ui';
+import { BadgeGridSkeleton } from '@/components/ui/Skeleton';
 import { fmtDate, cn } from '@/lib/utils';
 
 export default function Achievements() {
   const { data, isLoading } = useQuery({ queryKey: ['achievements'], queryFn: async () => (await api.get('/analytics/achievements')).data as { items: Achievement[]; points: number; level: number; nextLevelPoints: number; earnedCount: number } });
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <BadgeGridSkeleton />;
   const prevLevelPoints = 100 * data.level ** 2;
   const cats = [...new Set(data.items.map((a) => a.category))];
   return (

@@ -6,7 +6,8 @@ import PlanNav from '@/components/PlanNav';
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { WorkoutPlan } from '@/types';
-import { PageHeader, Empty, PageLoader, Modal, Select, Input, Badge, Confirm, Tabs, FadeIn } from '@/components/ui';
+import { PageHeader, Empty, Modal, Select, Input, Badge, Confirm, Tabs, FadeIn } from '@/components/ui';
+import { CardGridSkeleton } from '@/components/ui/Skeleton';
 import { label, DAYS } from '@/lib/utils';
 
 const FOCUS = ['full_body', 'chest', 'back', 'legs', 'shoulders', 'core', 'cardio'];
@@ -40,7 +41,7 @@ export default function Plans() {
       <PlanNav />
       <Tabs className="mb-4" tabs={[{ value: 'mine', label: `My plans (${mine.data?.length ?? 0})` }, { value: 'templates', label: 'Templates' }]} value={tab} onChange={setTab} />
 
-      {loading ? <PageLoader /> : !list?.length ? (
+      {loading ? <CardGridSkeleton /> : !list?.length ? (
         <Empty icon={<Dumbbell className="h-10 w-10" />} title={tab === 'mine' ? 'No plans yet' : 'No templates'} hint="Generate a plan with AI or copy a template to get started."
           action={<button className="btn-primary" onClick={() => setGen({ ...gen, open: true })}><Sparkles className="h-4 w-4" /> Generate with AI</button>} />
       ) : (

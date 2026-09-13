@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { safePath } from '@/lib/safePath';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { RouteSkeleton } from '@/components/ui/Skeleton';
 import type { Notification } from '@/types';
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; end?: boolean; short?: string };
@@ -194,7 +195,13 @@ export default function AppShell() {
         </header>
         {serverDown && <div role="status" className="flex items-center justify-center gap-2 bg-amber-500/15 px-4 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300"><CloudOff className="h-4 w-4" /> Can't reach the server - showing what's cached and retrying automatically.</div>}
         <main id="main" className="flex-1 py-4 sm:py-6 lg:pb-8" style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingRight: 'max(1rem, env(safe-area-inset-right))', paddingBottom: 'calc(6.5rem + env(safe-area-inset-bottom))' }}>
-          <div className="mx-auto min-w-0 max-w-6xl"><ErrorBoundary resetKey={loc.pathname}><Outlet /></ErrorBoundary></div>
+          {/* Suspense sits here, not around the whole app, so navigating between pages swaps only the
+              content area - the sidebar and header stay put instead of flashing away. */}
+          <div className="mx-auto min-w-0 max-w-6xl">
+            <ErrorBoundary resetKey={loc.pathname}>
+              <Suspense fallback={<RouteSkeleton pathname={loc.pathname} />}><Outlet /></Suspense>
+            </ErrorBoundary>
+          </div>
         </main>
 
         {/* Mobile bottom bar with raised Start button. Fixed to the visual viewport; safe-area padded for curved / notched phones. */}

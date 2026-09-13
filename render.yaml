@@ -19,3 +19,5 @@ services:
         value: gemini-2.5-flash
       - key: CLIENT_URL
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false

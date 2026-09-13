@@ -4,7 +4,8 @@ import { CalendarCheck, RefreshCw, Sparkles, Moon, Zap, Flame, Droplets, Beef, C
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { WeeklyPlan } from '@/types';
-import { PageHeader, PageLoader, Badge, FadeIn } from '@/components/ui';
+import { PageHeader, Badge, FadeIn } from '@/components/ui';
+import { WeekPageSkeleton } from '@/components/ui/Skeleton';
 import { label, cn, MUSCLE_COLORS } from '@/lib/utils';
 import PlanNav from '@/components/PlanNav';
 
@@ -22,7 +23,7 @@ export default function WeekPlan() {
     onError: (e) => toast.error(errMsg(e)),
   });
 
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <WeekPageSkeleton />;
   const todayIdx = (new Date().getDay() + 6) % 7;
   const training = data.days.filter((d) => d.type === 'training').length;
   const monday = new Date(data.weekStart);
@@ -68,7 +69,7 @@ export default function WeekPlan() {
                   </div>
                   {d.type === 'training' && (
                     <div className="border-t border-zinc-100 px-3 pb-3 dark:border-white/[0.06] sm:px-4">
-                      {d.warmup && <p className="mt-2 text-xs text-zinc-500">Warm-up: {d.warmup}</p>}
+                      {d.warmup && <p className="mt-2 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-800 dark:text-amber-200"><span className="font-bold">Warm-up first ·</span> {d.warmup}</p>}
                       <ul className="mt-2 divide-y divide-zinc-100 text-sm dark:divide-white/5">
                         {d.exercises.map((e, j) => (
                           <li key={j} className="flex items-start justify-between gap-3 py-1.5">
@@ -77,6 +78,7 @@ export default function WeekPlan() {
                           </li>
                         ))}
                       </ul>
+                      {d.cooldown && <p className="mt-2 rounded-lg bg-sky-500/10 px-2.5 py-1.5 text-xs text-sky-800 dark:text-sky-200"><span className="font-bold">Cool-down after ·</span> {d.cooldown}</p>}
                       {d.notes && <p className="mt-2 rounded-lg bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-600 dark:bg-white/5 dark:text-zinc-300">{d.notes}</p>}
                     </div>
                   )}

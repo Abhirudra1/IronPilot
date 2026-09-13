@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { Flame, Timer, Dumbbell } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { WorkoutSession } from '@/types';
-import { PageLoader, Badge } from '@/components/ui';
+import { Badge } from '@/components/ui';
+import { DetailPageSkeleton } from '@/components/ui/Skeleton';
 import { fmtDuration, fmtDateTime, label } from '@/lib/utils';
 
 export default function Shared() {
   const { code } = useParams();
   const { data, isLoading, isError } = useQuery({ queryKey: ['shared', code], queryFn: async () => (await api.get(`/sessions/shared/${code}`)).data.item as WorkoutSession });
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return <DetailPageSkeleton />;
   if (isError || !data) return <div className="p-10 text-center"><p className="font-semibold">This shared workout could not be found.</p><Link to="/" className="btn-primary mt-4">Go to IronPilot</Link></div>;
   const name = typeof data.user === 'object' ? data.user.fullName : 'An IronPilot user';
   return (

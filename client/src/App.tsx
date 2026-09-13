@@ -1,8 +1,19 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import AppShell from './components/layout/AppShell';
-import { PageLoader } from './components/ui';
+import { AuthSkeleton, ShellSkeleton } from './components/ui/Skeleton';
+
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
+
+/** While a top-level chunk downloads, stand in with something shaped like the page being opened. */
+function BootSkeleton() {
+  const { pathname } = useLocation();
+  return AUTH_PATHS.some((p) => pathname.startsWith(p)) ? <AuthSkeleton /> : <ShellSkeleton pathname={pathname} />;
+}
+
+// Lazy: the authenticated shell (and its framer-motion sidebar/drawer animations) is dead weight
+// for anyone landing on /login, /register, or a /shared/:code link — keep it out of the entry chunk.
+const AppShell = lazy(() => import('./components/layout/AppShell'));
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -35,7 +46,7 @@ const Admin = lazy(() => import('./pages/admin/Admin'));
 function Protected({ children, admin = false }: { children: JSX.Element; admin?: boolean }) {
   const { user, loading, serverDown } = useAuth();
   const loc = useLocation();
-  if (loading) return <PageLoader />;
+  if (loading) return <ShellSkeleton pathname={loc.pathname} />;
   if (!user && serverDown) return <ServerDown />; // keep the session, do not bounce to login while the API is unreachable
   if (!user) return <Navigate to="/login" state={{ from: loc.pathname }} replace />;
   if (admin && user.role !== 'admin') return <Navigate to="/" replace />;
@@ -44,13 +55,13 @@ function Protected({ children, admin = false }: { children: JSX.Element; admin?:
 }
 function Public({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  if (loading) return <PageLoader />;
+  if (loading) return <AuthSkeleton />;
   return user ? <Navigate to="/" replace /> : children;
 }
 
 export default function App() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<BootSkeleton />}>
       <Routes>
         <Route path="/login" element={<Public><Login /></Public>} />
         <Route path="/register" element={<Public><Register /></Public>} />

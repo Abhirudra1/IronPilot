@@ -6,7 +6,8 @@ import { Plus, Trash2, GripVertical, Save, ArrowLeft, Search } from 'lucide-reac
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { Exercise, Equipment, PlanExercise, WorkoutPlan } from '@/types';
-import { PageHeader, PageLoader, Input, Select, Modal, Badge, Textarea } from '@/components/ui';
+import { PageHeader, Input, Select, Modal, Badge, Textarea } from '@/components/ui';
+import { FormPageSkeleton } from '@/components/ui/Skeleton';
 import { label, DAYS, MUSCLES } from '@/lib/utils';
 
 type Row = PlanExercise & { key: string };
@@ -51,7 +52,7 @@ export default function PlanEditor() {
     onSuccess: () => { toast.success('Plan saved'); nav('/plans'); }, onError: (e) => toast.error(errMsg(e)),
   });
 
-  if (!isNew && plan.isLoading) return <PageLoader />;
+  if (!isNew && plan.isLoading) return <FormPageSkeleton />;
 
   return (
     <div>

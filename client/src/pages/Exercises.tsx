@@ -6,7 +6,8 @@ import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import ExerciseAnimation from '@/components/ExerciseAnimation';
 import type { Exercise, Equipment } from '@/types';
-import { PageHeader, PageLoader, Select, Badge, Modal, Empty } from '@/components/ui';
+import { PageHeader, Select, Badge, Modal, Empty } from '@/components/ui';
+import { ExerciseGridSkeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { label, MUSCLES, MUSCLE_COLORS, cn } from '@/lib/utils';
 
@@ -37,7 +38,7 @@ export default function Exercises() {
       </div>
       <button onClick={() => set('favorites', onlyFav ? '' : 'true')} className={cn('chip mb-4 border', onlyFav ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-300 dark:border-white/10')}><Heart className="h-3.5 w-3.5" /> Favourites ({favSet.size})</button>
 
-      {exercises.isLoading ? <PageLoader /> : !list.length ? <Empty title="No exercises match" /> : (
+      {exercises.isLoading ? <ExerciseGridSkeleton /> : !list.length ? <Empty title="No exercises match" /> : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((e) => (
             <div key={e._id} className={cn('card flex items-start gap-3 p-4', params.get('highlight') === e.slug && 'ring-2 ring-brand-500')}>

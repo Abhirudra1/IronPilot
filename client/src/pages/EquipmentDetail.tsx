@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ExternalLink, ShieldAlert, Lightbulb, Target, Clock, Gauge, Weight, PlayCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Equipment, Exercise } from '@/types';
-import { PageLoader, Badge, FadeIn } from '@/components/ui';
+import { Badge, FadeIn } from '@/components/ui';
+import { DetailPageSkeleton } from '@/components/ui/Skeleton';
 import { label } from '@/lib/utils';
 import { EquipmentImage } from './Equipment';
 
@@ -11,7 +12,7 @@ export default function EquipmentDetail() {
   const { slug } = useParams();
   const nav = useNavigate();
   const { data, isLoading } = useQuery({ queryKey: ['equipment', slug], queryFn: async () => (await api.get(`/library/equipment/${slug}`)).data as { item: Equipment; exercises: Exercise[] } });
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <DetailPageSkeleton />;
   const e = data.item;
   const facts = [
     { icon: Target, label: 'Purpose', value: e.purpose },

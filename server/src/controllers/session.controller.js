@@ -7,6 +7,7 @@ import { caloriesBurned } from '../utils/fitness.js';
 import { updateStreak } from '../services/streak.js';
 import { evaluateAchievements } from '../services/achievements.js';
 import { sessionSummary } from '../services/aiCoach.js';
+import { buildWarmup, buildCooldown } from '../services/routines.js';
 import { dayName } from '../utils/dates.js';
 
 export const startSchema = z.object({
@@ -62,9 +63,12 @@ export async function start(req, res) {
   else if (!req.body.exercises?.length) plan = await WorkoutPlan.findOne({ user: req.user._id, isActive: true, scheduledDays: dayName() }).lean();
 
   const exercises = plan ? planToSessionExercises(plan.exercises) : planToSessionExercises((req.body.exercises || []).map((e) => ({ ...e })));
+  const groups = plan?.muscleGroups?.length ? plan.muscleGroups : [...new Set(exercises.map((e) => e.muscleGroup).filter(Boolean))];
+  const routineOpts = { firstExercise: exercises.find((e) => e.type !== 'cardio')?.exerciseName, level: req.user.experienceLevel, hasStrength: exercises.some((e) => e.type !== 'cardio') };
   const item = await WorkoutSession.create({
     user: req.user._id, plan: plan?._id, planName: plan?.name || 'Free workout', focus: plan?.focus || 'Free workout',
-    exercises, checkInMethod: req.body.checkInMethod || 'manual', gymCode: req.body.gymCode,
+    exercises, warmup: buildWarmup(groups, routineOpts), cooldown: buildCooldown(groups),
+    checkInMethod: req.body.checkInMethod || 'manual', gymCode: req.body.gymCode,
   });
   res.status(201).json({ success: true, item });
 }
@@ -78,6 +82,34 @@ export async function get(req, res) {
   const item = await WorkoutSession.findOne({ _id: req.params.id, user: req.user._id }).lean();
   if (!item) throw notFound('Session not found');
   res.json({ success: true, item });
+}
+
+export const routineStepSchema = z.object({ done: z.boolean() });
+
+/** Tick a single warm-up / cool-down step. */
+export async function setRoutineStep(req, res) {
+  const s = await loadActive(req);
+  const phase = req.params.phase === 'cooldown' ? 'cooldown' : 'warmup';
+  const routine = s[phase];
+  if (!routine) throw notFound('This session has no routine for that phase');
+  const stepDoc = routine.steps.id(req.params.stepId);
+  if (!stepDoc) throw notFound('Step not found');
+  stepDoc.done = req.body.done;
+  stepDoc.doneAt = req.body.done ? new Date() : undefined;
+  routine.completedAt = routine.steps.every((x) => x.done) ? new Date() : undefined;
+  await s.save();
+  res.json({ success: true, item: s });
+}
+
+/** Skip (or un-skip) a whole warm-up / cool-down phase. */
+export async function skipRoutine(req, res) {
+  const s = await loadActive(req);
+  const phase = req.params.phase === 'cooldown' ? 'cooldown' : 'warmup';
+  const routine = s[phase];
+  if (!routine) throw notFound('This session has no routine for that phase');
+  routine.skipped = req.body.skipped !== false;
+  await s.save();
+  res.json({ success: true, item: s });
 }
 
 export async function addExercise(req, res) {

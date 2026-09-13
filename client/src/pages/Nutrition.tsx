@@ -6,7 +6,8 @@ import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import MealForm from '@/components/MealForm';
 import type { Meal, WaterLog, DietPlan, MealSuggestions } from '@/types';
-import { PageHeader, PageLoader, Tabs, Modal, Input, Select, Bar, ProgressRing, Badge, FadeIn, Textarea } from '@/components/ui';
+import { PageHeader, Tabs, Modal, Input, Select, Bar, ProgressRing, Badge, FadeIn, Textarea } from '@/components/ui';
+import { RingListSkeleton, ListSkeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { label, fmtDate, todayISO } from '@/lib/utils';
 
@@ -43,7 +44,7 @@ export default function Nutrition() {
       <PageHeader title="Nutrition" subtitle="Meals, macros, hydration and your AI diet plan." icon={<Utensils className="h-6 w-6" />} actions={<Input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Date" />} />
       <Tabs className="mb-4" tabs={[{ value: 'meals', label: 'Meals' }, { value: 'water', label: 'Water' }, { value: 'diet', label: 'AI Diet Planner' }]} value={tab} onChange={setTab} />
 
-      {tab === 'meals' && (meals.isLoading || !m ? <PageLoader /> : (
+      {tab === 'meals' && (meals.isLoading || !m ? <RingListSkeleton /> : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
           <FadeIn>
@@ -97,7 +98,7 @@ export default function Nutrition() {
         </div>
       ))}
 
-      {tab === 'water' && (water.isLoading || !w ? <PageLoader /> : (
+      {tab === 'water' && (water.isLoading || !w ? <RingListSkeleton rows={3} /> : (
         <div className="grid gap-4 lg:grid-cols-2">
           <FadeIn>
             <div className="card flex flex-col items-center p-6 text-center">
@@ -117,7 +118,7 @@ export default function Nutrition() {
         </div>
       ))}
 
-      {tab === 'diet' && (diet.isLoading || !diet.data ? <PageLoader /> : (
+      {tab === 'diet' && (diet.isLoading || !diet.data ? <ListSkeleton rows={4} /> : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm text-slate-500">Plans are personalised using your goal, weight, height, age, activity, calories burned, workout intensity and dietary preference.</p>

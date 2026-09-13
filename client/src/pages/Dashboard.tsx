@@ -6,7 +6,8 @@ import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import type { DashboardData, WaterLog } from '@/types';
-import { Stat, ProgressRing, PageLoader, Modal, Input, FadeIn, Bar } from '@/components/ui';
+import { Stat, ProgressRing, Modal, Input, FadeIn, Bar } from '@/components/ui';
+import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import AICoachWidget from '@/components/AICoachWidget';
 import QuickLog from '@/components/QuickLog';
 import MealForm from '@/components/MealForm';
@@ -39,7 +40,7 @@ export default function Dashboard() {
   });
   const addWeight = useMutation({ mutationFn: () => api.post('/tracking/weight', { weight: Number(weight) }), onSuccess: (r) => { toast.success('Weight logged'); setModal(null); setWeight(''); invalidate(); if (r.data.newAchievements?.length) toast(`🏅 ${r.data.newAchievements[0].title}`); }, onError: (e) => toast.error(errMsg(e)) });
 
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <DashboardSkeleton />;
   const t = data.today;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';

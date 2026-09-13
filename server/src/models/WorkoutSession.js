@@ -34,6 +34,30 @@ const sessionExerciseSchema = new mongoose.Schema({
   order: Number,
 }, { _id: true });
 
+// Warm-up / cool-down live outside `exercises` on purpose: they are coaching steps to tick off,
+// not logged work, so they must never reach volume, calorie or muscle-group stats.
+const routineStepSchema = new mongoose.Schema({
+  key: String,
+  name: { type: String, required: true },
+  sets: { type: Number, default: 1 },
+  reps: { type: Number, default: 0 },
+  durationSeconds: { type: Number, default: 0 },
+  how: String,
+  why: String,
+  done: { type: Boolean, default: false },
+  doneAt: Date,
+}, { _id: true });
+
+const routineSchema = new mongoose.Schema({
+  title: String,
+  when: String,
+  why: String,
+  totalSeconds: Number,
+  steps: [routineStepSchema],
+  skipped: { type: Boolean, default: false },
+  completedAt: Date,
+}, { _id: false });
+
 const workoutSessionSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   plan: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkoutPlan' },
@@ -41,6 +65,8 @@ const workoutSessionSchema = new mongoose.Schema({
   focus: String,
   status: { type: String, enum: ['active', 'paused', 'completed', 'abandoned'], default: 'active', index: true },
   exercises: [sessionExerciseSchema],
+  warmup: routineSchema,
+  cooldown: routineSchema,
   currentExerciseIndex: { type: Number, default: 0 },
   startedAt: { type: Date, default: Date.now },
   endedAt: Date,

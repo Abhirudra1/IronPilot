@@ -12,6 +12,8 @@ r.post('/start', validate(c.startSchema), asyncHandler(c.start));
 r.get('/active', asyncHandler(c.active));
 r.get('/history', asyncHandler(c.history));
 r.get('/:id', asyncHandler(c.get));
+r.patch('/:id/routine/:phase/steps/:stepId', validate(c.routineStepSchema), asyncHandler(c.setRoutineStep));
+r.patch('/:id/routine/:phase/skip', asyncHandler(c.skipRoutine));
 r.post('/:id/exercises', validate(c.addExerciseSchema), asyncHandler(c.addExercise));
 r.post('/:id/exercises/:exerciseId/sets', validate(c.setSchema), asyncHandler(c.completeSet));
 r.post('/:id/exercises/:exerciseId/cardio', validate(c.cardioSchema), asyncHandler(c.logCardio));

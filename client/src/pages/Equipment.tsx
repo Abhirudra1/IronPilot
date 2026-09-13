@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Library, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Equipment as Eq } from '@/types';
-import { PageHeader, PageLoader, Tabs, Badge, FadeIn, Empty } from '@/components/ui';
+import { PageHeader, Tabs, Badge, FadeIn, Empty } from '@/components/ui';
+import { MediaGridSkeleton } from '@/components/ui/Skeleton';
 import { label, equipmentEmoji } from '@/lib/utils';
 
 const CATS = [{ value: 'all', label: 'All' }, { value: 'cardio', label: 'Cardio' }, { value: 'strength_machine', label: 'Machines' }, { value: 'free_weight', label: 'Free weights' }] as const;
@@ -28,7 +29,7 @@ export default function Equipment() {
         <Tabs tabs={CATS as unknown as { value: typeof cat; label: string }[]} value={cat} onChange={setCat} />
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input className="input pl-9" placeholder="Search equipment or muscle" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search equipment" /></div>
       </div>
-      {isLoading ? <PageLoader /> : !items.length ? <Empty title="No equipment found" hint="Run the seed script on the server to load the library." /> : (
+      {isLoading ? <MediaGridSkeleton /> : !items.length ? <Empty title="No equipment found" hint="Run the seed script on the server to load the library." /> : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((e, i) => (
             <FadeIn key={e._id} delay={Math.min(i, 8) * 0.04}>

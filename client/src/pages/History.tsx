@@ -5,7 +5,8 @@ import { History as HistoryIcon, Search, Flame, Timer, Trash2, Dumbbell, Chevron
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { WorkoutSession, WorkoutLog } from '@/types';
-import { PageHeader, PageLoader, Empty, Tabs, Input, Select, Badge, Modal, Confirm, Textarea } from '@/components/ui';
+import { PageHeader, Empty, Tabs, Input, Select, Badge, Modal, Confirm, Textarea } from '@/components/ui';
+import { ListSkeleton } from '@/components/ui/Skeleton';
 import { fmtDuration, fmtDateTime, label, MUSCLES, cn } from '@/lib/utils';
 
 export default function History() {
@@ -45,7 +46,7 @@ export default function History() {
         </div>
       </div>
 
-      {loading ? <PageLoader /> : !data?.items.length ? (
+      {loading ? <ListSkeleton /> : !data?.items.length ? (
         <Empty icon={<Dumbbell className="h-10 w-10" />} title="Nothing here yet" hint="Complete a session or log an exercise from the dashboard." action={<Link to="/session" className="btn-primary">Start a session</Link>} />
       ) : tab === 'sessions' ? (
         <div className="space-y-2">

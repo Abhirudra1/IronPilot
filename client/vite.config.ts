@@ -29,10 +29,14 @@ export default defineConfig(({ mode }) => {
       },
       workbox: {
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // JS is intentionally left out of precache: route-only chunks (charts, PDF/canvas export)
+        // would otherwise all download in the background right after first paint, on every deploy.
+        // They're cached on demand instead via the runtime 'app-scripts' rule below.
+        globPatterns: ['**/*.{css,html,svg,png,ico,woff2}'],
         runtimeCaching: [
           { urlPattern: /\/api\/library\//, handler: 'StaleWhileRevalidate', options: { cacheName: 'library', expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 3600 } } },
           { urlPattern: /^https:\/\/images\.unsplash\.com\//, handler: 'CacheFirst', options: { cacheName: 'images', expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 3600 } } },
+          { urlPattern: ({ request }) => request.destination === 'script', handler: 'StaleWhileRevalidate', options: { cacheName: 'app-scripts', expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 3600 } } },
         ],
       },
     }),

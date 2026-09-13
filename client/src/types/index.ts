@@ -50,9 +50,17 @@ export interface SessionExercise {
   durationSeconds?: number; distanceKm?: number; speedKmh?: number; caloriesBurned: number; notes?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'skipped'; startedAt?: string; completedAt?: string; order: number;
 }
+export interface RoutineStep {
+  _id: string; key?: string; name: string; sets: number; reps: number; durationSeconds: number;
+  how?: string; why?: string; done: boolean; doneAt?: string;
+}
+export interface SessionRoutine {
+  title: string; when?: string; why?: string; totalSeconds: number; steps: RoutineStep[]; skipped?: boolean; completedAt?: string;
+}
+export type RoutinePhase = 'warmup' | 'cooldown';
 export interface WorkoutSession {
   _id: string; user: string | { fullName: string }; plan?: string; planName: string; focus?: string; status: 'active' | 'paused' | 'completed' | 'abandoned';
-  exercises: SessionExercise[]; currentExerciseIndex: number; startedAt: string; endedAt?: string; durationSeconds: number;
+  exercises: SessionExercise[]; warmup?: SessionRoutine; cooldown?: SessionRoutine; currentExerciseIndex: number; startedAt: string; endedAt?: string; durationSeconds: number;
   totalCalories: number; totalVolume: number; muscleGroups: string[]; aiSummary?: string; rating?: number; notes?: string; shareCode?: string;
 }
 
@@ -79,7 +87,7 @@ export interface PlanSuggestion { plan: { _id: string; name: string; focus?: str
 export interface MealSuggestion { name: string; description: string; items: string[]; calories: number; protein: number; carbs: number; fat: number }
 export interface MealSuggestions { nextMeal: string; totals: Record<string, number>; targets: Record<string, number>; remaining: Record<string, number>; suggestions: MealSuggestion[]; source: 'gemini' | 'rules'; note: string; planName: string | null; planMeal: { name: string; calories: number; protein: number; items: string[] } | null }
 
-export interface WeeklyPlanDay { day: string; type: 'training' | 'rest'; focus: string; muscleGroups: string[]; warmup?: string; notes?: string; planId?: string; exercises: { name: string; type: string; sets: number; reps: number; weightKg: number; durationMin: number; note: string }[] }
+export interface WeeklyPlanDay { day: string; type: 'training' | 'rest'; focus: string; muscleGroups: string[]; warmup?: string; cooldown?: string; notes?: string; planId?: string; exercises: { name: string; type: string; sets: number; reps: number; weightKg: number; durationMin: number; note: string }[] }
 export interface WeeklyPlan { weekStart: string; generatedAt?: string; summary: string; days: WeeklyPlanDay[]; nutrition: { trainingDayCalories: number; restDayCalories: number; protein: number; carbs: number; fat: number; waterMl: number; mealStructure: { meal: string; protein: number; idea: string }[]; tips: string[] }; coachNotes: string[]; source: 'gemini' | 'rules' }
 
 export interface DashboardData {

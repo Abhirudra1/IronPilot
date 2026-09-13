@@ -6,7 +6,8 @@ import PlanNav from '@/components/PlanNav';
 import toast from 'react-hot-toast';
 import { api, errMsg } from '@/lib/api';
 import type { WorkoutPlan } from '@/types';
-import { PageHeader, PageLoader, Modal, Badge, FadeIn } from '@/components/ui';
+import { PageHeader, Modal, Badge, FadeIn } from '@/components/ui';
+import { ListPageSkeleton } from '@/components/ui/Skeleton';
 import { DAYS, label, cn, MUSCLE_COLORS } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 
@@ -52,7 +53,7 @@ export default function Schedule() {
     if (p === 'granted') { new Notification('IronPilot', { body: 'Workout reminders enabled 💪', icon: '/icons/icon-192.png' }); toast.success('Reminders enabled'); } else toast.error('Permission denied');
   };
 
-  if (isLoading || !data) return <PageLoader />;
+  if (isLoading || !data) return <ListPageSkeleton filters={false} />;
   const todayIdx = (new Date().getDay() + 6) % 7;
   const trainingDays = DAYS.filter((d) => data.schedule[d]).length;
   const target = user?.workoutDaysPerWeek || 3;

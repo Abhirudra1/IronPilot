@@ -1,7 +1,9 @@
 import { forwardRef, useEffect, useState, type ReactNode, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Eye, EyeOff } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+export { Spinner, PageLoader } from './PageLoader';
 
 /* ---------- Layout ---------- */
 export function Card({ className, children, ...rest }: { className?: string; children: ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
@@ -34,9 +36,6 @@ export function Empty({ icon, title, hint, action }: { icon?: ReactNode; title: 
     </div>
   );
 }
-
-export const Spinner = ({ className }: { className?: string }) => <Loader2 className={cn('h-5 w-5 animate-spin text-brand-500', className)} aria-label="Loading" />;
-export const PageLoader = () => <div className="flex h-64 items-center justify-center"><Spinner className="h-8 w-8" /></div>;
 
 /* ---------- Form ---------- */
 type InputProps = InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string; hint?: string };

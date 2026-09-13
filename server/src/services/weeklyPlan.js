@@ -2,11 +2,29 @@ import { WorkoutPlan, AIRecommendation, Exercise } from '../models/index.js';
 import { generate, parseJson, geminiEnabled, COACH_SYSTEM } from './gemini.js';
 import { buildUserContext, contextToText } from './userContext.js';
 import { exerciseHistory, suggestLoad, historyText } from './loads.js';
+import { buildWarmup, buildCooldown, routineText } from './routines.js';
 import { macroTargets } from '../utils/fitness.js';
 import { DAYS } from '../utils/constants.js';
 
 const label = (s) => String(s || '').replace(/_/g, ' ');
 const SPREAD = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
+
+// Every training day pairs two muscle groups that work well together (a push with its triceps,
+// a pull with its biceps), so no day is a single isolated body part.
+const COMPLEMENT = {
+  chest: 'triceps', triceps: 'chest', back: 'biceps', biceps: 'back',
+  shoulders: 'core', core: 'shoulders', quads: 'hamstrings', hamstrings: 'quads',
+  glutes: 'hamstrings', calves: 'quads', forearms: 'biceps', cardio: 'core', full_body: 'core',
+};
+
+/** Guarantees a day names at least two muscle groups. */
+function pairGroups(groups = []) {
+  const list = [...new Set(groups.map((g) => String(g).toLowerCase()).filter((g) => /^[a-z_]+$/.test(g)))];
+  if (list.length >= 2) return list.slice(0, 4);
+  const primary = list[0] || 'full_body';
+  const mate = COMPLEMENT[primary] || 'core';
+  return primary === mate ? [primary] : [primary, mate];
+}
 
 /** Monday of the current week as YYYY-MM-DD (the cache key). */
 export function weekKey(d = new Date()) {
@@ -21,13 +39,20 @@ function rulesWeek(user, ctx, plans, history) {
   const pool = plans.length ? plans : [];
   const days = DAYS.map((day, i) => {
     const k = slots.indexOf(i);
-    if (k < 0 || !pool.length) return { day, type: 'rest', focus: 'Rest & recovery', muscleGroups: [], exercises: [], notes: k >= 0 ? 'Create a plan or copy a template so the coach can fill this day.' : 'Easy 20-30 min walk, stretch, sleep 7-8 h.' };
+    if (k < 0 || !pool.length) return { day, type: 'rest', focus: 'Rest & recovery', muscleGroups: [], exercises: [], warmup: '', cooldown: '', notes: k >= 0 ? 'Create a plan or copy a template so the coach can fill this day.' : 'Easy 20-30 min walk, stretch, sleep 7-8 h.' };
     const p = pool[k % pool.length];
     const exercises = p.exercises.map((e) => {
       const load = e.type === 'cardio' ? null : suggestLoad(user, e.exerciseName, e.equipmentName || '', history);
       return { name: e.exerciseName, type: e.type, sets: e.sets, reps: e.reps, weightKg: load ? load.weight : 0, durationMin: e.type === 'cardio' ? e.duration : 0, note: load ? load.note : `${e.duration} min steady pace` };
     });
-    return { day, type: 'training', focus: p.focus || p.name, planId: String(p._id), muscleGroups: p.muscleGroups || [], exercises, warmup: '5 min easy cardio + 2 light warm-up sets of the first lift', notes: user.experienceLevel === 'beginner' ? 'Stop each set 2 reps before failure; form first.' : 'Leave 1-2 reps in reserve; add load when all sets hit the top of the rep range.' };
+    const muscleGroups = pairGroups(p.muscleGroups);
+    const firstExercise = exercises.find((e) => e.type !== 'cardio')?.name;
+    return {
+      day, type: 'training', focus: p.focus || p.name, planId: String(p._id), muscleGroups, exercises,
+      warmup: routineText(buildWarmup(muscleGroups, { firstExercise, level: user.experienceLevel, hasStrength: !!firstExercise })),
+      cooldown: routineText(buildCooldown(muscleGroups)),
+      notes: user.experienceLevel === 'beginner' ? 'Stop each set 2 reps before failure; form first.' : 'Leave 1-2 reps in reserve; add load when all sets hit the top of the rep range.',
+    };
   });
   const protein = t.protein;
   const s = ctx.stats;
@@ -55,10 +80,15 @@ function sanitizeWeek(parsed, fallback) {
     const d = byDay.get(day); const fb = fallback.days.find((x) => x.day === day);
     if (!d) return fb;
     const training = d.type !== 'rest' && Array.isArray(d.exercises) && d.exercises.length > 0;
+    // The model is asked for two complementary groups per day; pairGroups enforces it either way.
+    const muscleGroups = training ? pairGroups(Array.isArray(d.muscleGroups) ? d.muscleGroups.map(String) : fb.muscleGroups) : [];
+    const exercises = training ? d.exercises.slice(0, 10).map((e) => ({ name: String(e.name || '').slice(0, 60), type: e.durationMin > 0 ? 'cardio' : 'strength', sets: Math.min(10, Math.max(1, Number(e.sets) || 3)), reps: Math.min(50, Math.max(0, Number(e.reps) || 0)), weightKg: Math.max(0, Number(e.weightKg) || 0), durationMin: Math.max(0, Number(e.durationMin) || 0), note: String(e.note || '').slice(0, 140) })) : [];
+    const firstExercise = exercises.find((e) => e.type !== 'cardio')?.name;
     return {
-      day, type: training ? 'training' : 'rest', focus: String(d.focus || fb.focus).slice(0, 60), muscleGroups: Array.isArray(d.muscleGroups) ? d.muscleGroups.map(String).slice(0, 6) : fb.muscleGroups,
-      exercises: training ? d.exercises.slice(0, 10).map((e) => ({ name: String(e.name || '').slice(0, 60), type: e.durationMin > 0 ? 'cardio' : 'strength', sets: Math.min(10, Math.max(1, Number(e.sets) || 3)), reps: Math.min(50, Math.max(0, Number(e.reps) || 0)), weightKg: Math.max(0, Number(e.weightKg) || 0), durationMin: Math.max(0, Number(e.durationMin) || 0), note: String(e.note || '').slice(0, 140) })) : [],
-      warmup: String(d.warmup || fb.warmup || '').slice(0, 140), notes: String(d.notes || '').slice(0, 200),
+      day, type: training ? 'training' : 'rest', focus: String(d.focus || fb.focus).slice(0, 60), muscleGroups, exercises,
+      warmup: training ? String(d.warmup || '').slice(0, 240) || routineText(buildWarmup(muscleGroups, { firstExercise, hasStrength: !!firstExercise })) : '',
+      cooldown: training ? String(d.cooldown || '').slice(0, 240) || routineText(buildCooldown(muscleGroups)) : '',
+      notes: String(d.notes || '').slice(0, 200),
     };
   });
   const n = parsed.nutrition || {}; const fn = fallback.nutrition;
@@ -100,9 +130,11 @@ ${historyText(history)}
 The user's own plans: ${JSON.stringify(own.slice(0, 6).map((p) => ({ name: p.name, focus: p.focus, exercises: p.exercises.map((e) => `${e.exerciseName} ${e.sets}x${e.reps}`) })))}
 </user_data>
 You are a strength & conditioning coach with 10+ years of experience. Programme THIS week (Monday-Sunday) for this user: ${user.workoutDaysPerWeek} training days spread sensibly with rest days, matching their goal (${user.fitnessGoal}), level (${user.experienceLevel}) and what they actually did recently. Use their own plans where they fit, otherwise exercises from this library only: ${library.map((e) => e.name).join(', ')}.
+EVERY training day must pair TWO complementary muscle groups - never a single body part on its own. Use classic pairings (chest+triceps, back+biceps, quads+hamstrings or glutes, shoulders+core) and make sure "muscleGroups" lists both, with exercises for each. Across the week, spread the groups so nothing is trained twice in a row without 48 hours of recovery.
+EVERY training day must also have a "warmup" and a "cooldown". Warm-up: light cardio to raise temperature, then dynamic mobility and activation for that day's two groups, then light ramp-up sets of the first lift - never static stretching before lifting. Cool-down: a few minutes of easy cardio, then static stretches held ~30s for the two groups just trained. Write each as one comma-separated line naming the movements with times or sets, e.g. "3 min brisk treadmill walk, arm circles 1x20, band pull-apart 2x15, 2 ramp-up sets of bench press".
 For every strength exercise give a concrete starting weight in kg (per hand for dumbbells) based on their history (progress ~2.5-5% when they hit the top of the rep range; repeat the load otherwise; conservative estimates from body weight when there is no history). Cardio gets minutes. Keep sessions 45-60 minutes.
 Nutrition: daily calories for training vs rest days, protein/carbs/fat, water, and how to split protein across meals for their diet preference (${user.dietaryPreference}).
-Return JSON only: {"summary": string, "days": [{"day": "monday".."sunday", "type": "training"|"rest", "focus": string, "muscleGroups": string[], "warmup": string, "exercises": [{"name": string, "sets": number, "reps": number, "weightKg": number, "durationMin": number, "note": string}], "notes": string}], "nutrition": {"trainingDayCalories": number, "restDayCalories": number, "protein": number, "carbs": number, "fat": number, "waterMl": number, "mealStructure": [{"meal": string, "protein": number, "idea": string}], "tips": string[]}, "coachNotes": string[] (3-5 specific observations from their data)}`;
+Return JSON only: {"summary": string, "days": [{"day": "monday".."sunday", "type": "training"|"rest", "focus": string, "muscleGroups": string[] (exactly 2 on training days), "warmup": string, "cooldown": string, "exercises": [{"name": string, "sets": number, "reps": number, "weightKg": number, "durationMin": number, "note": string}], "notes": string}], "nutrition": {"trainingDayCalories": number, "restDayCalories": number, "protein": number, "carbs": number, "fat": number, "waterMl": number, "mealStructure": [{"meal": string, "protein": number, "idea": string}], "tips": string[]}, "coachNotes": string[] (3-5 specific observations from their data)}`;
       const text = await generate({ userId: user._id, system: COACH_SYSTEM, messages: [{ role: 'user', text: prompt }], json: true, temperature: 0.5, maxOutputTokens: 4000 });
       const parsed = parseJson(text);
       if (parsed?.days?.length) content = sanitizeWeek(parsed, fallback);
