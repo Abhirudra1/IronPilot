@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ShieldAlert, Lightbulb, ExternalLink } from 'lucide-react';
+import { BookOpen, ShieldAlert, Lightbulb, ExternalLink, AlertTriangle } from 'lucide-react';
 import type { Equipment, Exercise } from '@/types';
 import { equipmentEmoji } from '@/lib/utils';
+import { formCuesFor } from '@/lib/formCues';
 import ExerciseAnimation from '@/components/ExerciseAnimation';
 
 /** Beginner guided mode: shows equipment image, purpose, how-to, recommendations and safety. */
@@ -31,6 +32,20 @@ export default function GuidedMode({ equipment, exercise }: { equipment?: Equipm
           {(exercise?.instructions?.length || equipment?.howToUse?.length) ? (
             <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">How to do it</p><ol className="mt-1 list-decimal space-y-0.5 pl-5 text-sm">{(exercise?.instructions?.length ? exercise.instructions : equipment!.howToUse).map((s, i) => <li key={i}>{s}</li>)}</ol></div>
           ) : null}
+          {/* The corrections a coach would call out mid-set - the reason people plateau or get hurt. */}
+          {exercise && (
+            <div>
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-rose-500"><AlertTriangle className="h-3.5 w-3.5" /> What most people get wrong</p>
+              <ul className="mt-1.5 space-y-1.5">
+                {formCuesFor(exercise).map((c, i) => (
+                  <li key={i} className="rounded-lg bg-rose-500/10 p-2 text-sm">
+                    <p className="font-semibold text-rose-900 dark:text-rose-200">✗ {c.wrong}</p>
+                    <p className="mt-0.5 text-zinc-700 dark:text-zinc-300"><span className="font-bold text-emerald-600 dark:text-emerald-400">✓ Instead:</span> {c.fix}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {(exercise?.tips?.[0] || equipment?.beginnerTips?.[0]) && <p className="flex items-start gap-2 rounded-lg bg-brand-500/10 p-2 text-sm"><Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" /> {exercise?.tips?.[0] || equipment?.beginnerTips?.[0]}</p>}
           {equipment?.safetyTips?.[0] && <p className="flex items-start gap-2 rounded-lg bg-rose-500/10 p-2 text-sm"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" /> {equipment.safetyTips[0]}</p>}
           <div className="flex gap-3 text-xs">

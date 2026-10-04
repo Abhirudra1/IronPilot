@@ -44,6 +44,8 @@ const routineStepSchema = new mongoose.Schema({
   durationSeconds: { type: Number, default: 0 },
   how: String,
   why: String,
+  mistake: String,
+  video: String,
   done: { type: Boolean, default: false },
   doneAt: Date,
 }, { _id: true });

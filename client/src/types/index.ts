@@ -52,7 +52,7 @@ export interface SessionExercise {
 }
 export interface RoutineStep {
   _id: string; key?: string; name: string; sets: number; reps: number; durationSeconds: number;
-  how?: string; why?: string; done: boolean; doneAt?: string;
+  how?: string; why?: string; mistake?: string; video?: string; done: boolean; doneAt?: string;
 }
 export interface SessionRoutine {
   title: string; when?: string; why?: string; totalSeconds: number; steps: RoutineStep[]; skipped?: boolean; completedAt?: string;
